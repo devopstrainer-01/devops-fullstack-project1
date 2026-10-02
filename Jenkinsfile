@@ -59,9 +59,9 @@ pipeline {
                             ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} 'mkdir -p ${APP_DIR}'
                             scp -o StrictHostKeyChecking=no docker-compose.yml ${APP_EC2_HOST}:${APP_DIR}/docker-compose.yml
                             scp -o StrictHostKeyChecking=no "\$ENV_FILE" ${APP_EC2_HOST}:${APP_DIR}/.env
-                            ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} 'chmod 640 .env'
                             ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} '
                                 cd ${APP_DIR} &&
+                                chmod 640 .env &&
                                 echo "BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}" >> .env &&
                                 echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}" >> .env &&
                                 docker compose pull &&
