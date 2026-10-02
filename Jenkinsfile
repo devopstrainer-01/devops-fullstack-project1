@@ -6,7 +6,7 @@ pipeline {
 
     environment {
         REGISTRY        = 'ghcr.io'
-        OWNER           = 'OWNER'                // TODO: your GitHub username/org (lowercase)
+        OWNER           = 'devopstrainer-01'                // TODO: your GitHub username/org (lowercase)
         BACKEND_IMAGE   = "${REGISTRY}/${OWNER}/devops-fullstack-project1-backend"
         FRONTEND_IMAGE  = "${REGISTRY}/${OWNER}/devops-fullstack-project1-frontend"
         APP_EC2_HOST    = 'deployer@APP_EC2_PRIVATE_IP'  // TODO: real private IP
@@ -49,16 +49,24 @@ pipeline {
 
         stage('Deploy to App EC2') {
             steps {
+                // app-env-file: a Jenkins "Secret file" credential holding
+                // DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD/APP_ENV (see
+                // deployment-docs/08-secrets-management.md). It never touches
+                // git — Jenkins decrypts it to a temp path only for this step.
                 sshagent(credentials: ['app-ec2-ssh-key']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} '
-                            cd ${APP_DIR} &&
-                            sed -i "s#^BACKEND_IMAGE=.*#BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}#" .env &&
-                            sed -i "s#^FRONTEND_IMAGE=.*#FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}#" .env &&
-                            docker compose pull &&
-                            docker compose up -d
-                        '
-                    """
+                    withCredentials([file(credentialsId: 'app-env-file', variable: 'ENV_FILE')]) {
+                        sh """
+                            scp -o StrictHostKeyChecking=no docker-compose.yml ${APP_EC2_HOST}:${APP_DIR}/docker-compose.yml
+                            scp -o StrictHostKeyChecking=no "\$ENV_FILE" ${APP_EC2_HOST}:${APP_DIR}/.env
+                            ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} '
+                                cd ${APP_DIR} &&
+                                echo "BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}" >> .env &&
+                                echo "FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG}" >> .env &&
+                                docker compose pull &&
+                                docker compose up -d
+                            '
+                        """
+                    }
                 }
             }
         }
