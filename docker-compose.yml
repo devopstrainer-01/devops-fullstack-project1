@@ -8,7 +8,7 @@ services:
   # Service name MUST stay "app" — frontend/nginx.conf proxies to "app:8000"
   # via Docker's embedded DNS, which resolves by compose service name.
   app:
-    image: ${BACKEND_IMAGE:-ghcr.io/OWNER/devops-fullstack-project1-backend:latest}
+    image: ${BACKEND_IMAGE:-ghcr.io/devopstrainer-01/devops-fullstack-project1-backend:latest}
     restart: unless-stopped
     env_file:
       - .env
@@ -24,7 +24,7 @@ services:
       - app-net
 
   frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/OWNER/devops-fullstack-project1-frontend:latest}
+    image: ${FRONTEND_IMAGE:-ghcr.io/devopstrainer-01/devops-fullstack-project1-frontend:latest}
     restart: unless-stopped
     ports:
       - "80:80"
