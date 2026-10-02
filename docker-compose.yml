@@ -1,0 +1,44 @@
+# Production compose file — runs on the app EC2 (frontend + backend only).
+# Postgres is NOT defined here: it runs on its own EC2 and is reached over
+# the network via DB_HOST. Jenkins deploys by running:
+#   docker compose pull && docker compose up -d
+# See deployment-docs/ for how images get here and how secrets are supplied.
+
+services:
+  # Service name MUST stay "app" — frontend/nginx.conf proxies to "app:8000"
+  # via Docker's embedded DNS, which resolves by compose service name.
+  app:
+    image: ${BACKEND_IMAGE:-ghcr.io/OWNER/devops-fullstack-project1-backend:latest}
+    restart: unless-stopped
+    env_file:
+      - .env
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    networks:
+      - app-net
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-ghcr.io/OWNER/devops-fullstack-project1-frontend:latest}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge

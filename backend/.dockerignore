@@ -1,0 +1,11 @@
+# Anything listed here is never sent to the Docker daemon as build context.
+# Smaller context = faster builds + fewer accidental secrets baked into layers.
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.git/
+.gitignore
+*.md
+.pytest_cache/
