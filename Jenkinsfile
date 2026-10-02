@@ -10,7 +10,7 @@ pipeline {
         BACKEND_IMAGE   = "${REGISTRY}/${OWNER}/devops-fullstack-project1-backend"
         FRONTEND_IMAGE  = "${REGISTRY}/${OWNER}/devops-fullstack-project1-frontend"
         APP_EC2_HOST    = 'ubuntu@10.0.0.42'  // TODO: real private IP
-        APP_DIR         = '/opt/app'
+        APP_DIR         = '~/'
         IMAGE_TAG       = "${env.GIT_COMMIT.take(7)}"
     }
 
