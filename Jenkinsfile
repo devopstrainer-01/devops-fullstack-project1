@@ -10,7 +10,7 @@ pipeline {
         BACKEND_IMAGE   = "${REGISTRY}/${OWNER}/devops-fullstack-project1-backend"
         FRONTEND_IMAGE  = "${REGISTRY}/${OWNER}/devops-fullstack-project1-frontend"
         APP_EC2_HOST    = 'ubuntu@10.0.0.42'  // TODO: real private IP
-        APP_DIR         = '~/'
+        APP_DIR         = '~/3tier-webapp-deployment'
         IMAGE_TAG       = "${env.GIT_COMMIT.take(7)}"
     }
 
@@ -56,8 +56,10 @@ pipeline {
                 sshagent(credentials: ['app-ec2-ssh-key']) {
                     withCredentials([file(credentialsId: 'app-env-file', variable: 'ENV_FILE')]) {
                         sh """
+                            ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} 'mkdir -p ${APP_DIR}'
                             scp -o StrictHostKeyChecking=no docker-compose.yml ${APP_EC2_HOST}:${APP_DIR}/docker-compose.yml
                             scp -o StrictHostKeyChecking=no "\$ENV_FILE" ${APP_EC2_HOST}:${APP_DIR}/.env
+                            ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} 'chmod 640 .env'
                             ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} '
                                 cd ${APP_DIR} &&
                                 echo "BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG}" >> .env &&
