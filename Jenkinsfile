@@ -54,9 +54,17 @@ pipeline {
                 // deployment-docs/08-secrets-management.md). It never touches
                 // git — Jenkins decrypts it to a temp path only for this step.
                 sshagent(credentials: ['app-ec2-ssh-key']) {
-                    withCredentials([file(credentialsId: 'app-env-file', variable: 'ENV_FILE')]) {
+                    withCredentials([
+                        file(credentialsId: 'app-env-file', variable: 'ENV_FILE'),
+                        usernamePassword(
+                            credentialsId: 'ghcr-credentials',
+                            usernameVariable: 'GHCR_USER',
+                            passwordVariable: 'GHCR_TOKEN'
+                        )
+                    ]) {
                         sh """
                             ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} 'mkdir -p ${APP_DIR}'
+                            echo "\$GHCR_TOKEN" | ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} "docker login ${REGISTRY} -u \$GHCR_USER --password-stdin"
                             scp -o StrictHostKeyChecking=no docker-compose.yml ${APP_EC2_HOST}:${APP_DIR}/docker-compose.yml
                             scp -o StrictHostKeyChecking=no "\$ENV_FILE" ${APP_EC2_HOST}:${APP_DIR}/.env
                             ssh -o StrictHostKeyChecking=no ${APP_EC2_HOST} '
