@@ -9,7 +9,7 @@ pipeline {
         OWNER           = 'devopstrainer-01'                // TODO: your GitHub username/org (lowercase)
         BACKEND_IMAGE   = "${REGISTRY}/${OWNER}/devops-fullstack-project1-backend"
         FRONTEND_IMAGE  = "${REGISTRY}/${OWNER}/devops-fullstack-project1-frontend"
-        APP_EC2_HOST    = 'deployer@APP_EC2_PRIVATE_IP'  // TODO: real private IP
+        APP_EC2_HOST    = 'ubuntu@10.0.0.42'  // TODO: real private IP
         APP_DIR         = '/opt/app'
         IMAGE_TAG       = "${env.GIT_COMMIT.take(7)}"
     }
